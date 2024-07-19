@@ -1,5 +1,7 @@
 local M = {}
 
+local chan_timeout = 1000
+
 function M.unblock_guest(guest_pipe)
   local response_sock = vim.fn.sockconnect("pipe", guest_pipe, { rpc = true })
   vim.rpcnotify(
@@ -9,7 +11,9 @@ function M.unblock_guest(guest_pipe)
     "vim.cmd.qa({ bang = true })",
     {}
   )
-  vim.fn.chanclose(response_sock)
+  vim.defer_fn(function()
+    vim.fn.chanclose(response_sock)
+  end, chan_timeout)
 end
 
 function M.notify_when_done(pipe, bufnr, callback, ft)
